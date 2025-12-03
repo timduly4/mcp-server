@@ -1,0 +1,39 @@
+# Bazel configuration for mcp-server
+
+# Use bzlmod for dependency management
+common --enable_bzlmod
+
+# Build configuration
+build --show_timestamps
+build --announce_rc
+build --color=yes
+
+# Use sandboxing for better hermeticity
+build --spawn_strategy=sandboxed
+build --worker_sandboxing
+
+# Test configuration
+test --test_output=errors
+test --test_summary=detailed
+
+# Fast mode: minimal features for quick builds
+build:fast --compilation_mode=fastbuild
+build:fast --test_output=errors
+
+# Optimized mode: full optimization
+build:opt --compilation_mode=opt
+build:opt --strip=always
+
+# Debug mode: include debug symbols
+build:debug --compilation_mode=dbg
+build:debug --strip=never
+
+# CI mode: for continuous integration
+build:ci --color=no
+build:ci --curses=no
+build:ci --show_progress_rate_limit=30
+build:ci --keep_going
+build:ci --test_output=all
+
+# Try importing user-specific configuration
+try-import %workspace%/.bazelrc.user

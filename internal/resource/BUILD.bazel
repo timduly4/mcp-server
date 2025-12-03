@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "resource",
+    srcs = ["adapter.go"],
+    importpath = "github.com/timduly4/mcp-server/internal/resource",
+    visibility = ["//visibility:public"],
+    deps = ["//internal/github"],
+)
+
+go_test(
+    name = "resource_test",
+    srcs = ["adapter_test.go"],
+    embed = [":resource"],
+    deps = ["//internal/github"],
+)

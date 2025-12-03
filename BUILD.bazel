@@ -1,0 +1,21 @@
+load("@gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/timduly4/mcp-server
+gazelle(name = "gazelle")
+
+# Update BUILD files based on go.mod
+gazelle(
+    name = "gazelle-update-repos",
+    args = [
+        "-from_file=go.mod",
+        "-to_macro=deps.bzl%go_dependencies",
+        "-prune",
+    ],
+    command = "update-repos",
+)
+
+# Exports for other rules
+exports_files([
+    "go.mod",
+    "go.sum",
+])
