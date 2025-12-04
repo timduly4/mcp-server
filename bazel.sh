@@ -35,7 +35,10 @@ check_env() {
         echo "Copy .env.example to .env and configure your GITHUB_TOKEN"
         exit 1
     fi
+    # Export all variables from .env to make them available to child processes
+    set -a
     source .env
+    set +a
     if [ -z "$GITHUB_TOKEN" ]; then
         echo -e "${RED}Error: GITHUB_TOKEN not set in .env${NC}"
         exit 1
@@ -46,7 +49,7 @@ cmd_build() {
     echo -e "${GREEN}Building MCP server with Bazel...${NC}"
     bazel build //cmd/server:mcp-server
     echo -e "${GREEN}Build complete!${NC}"
-    echo "Binary location: bazel-bin/cmd/server/mcp-server_/mcp-server"
+    echo "Binary location: bazel-bin/cmd/server/server_/server"
 }
 
 cmd_test() {
@@ -59,7 +62,7 @@ cmd_run() {
     echo -e "${GREEN}Building and running MCP server...${NC}"
     bazel build //cmd/server:mcp-server
     echo -e "${GREEN}Starting server...${NC}"
-    bazel-bin/cmd/server/mcp-server_/mcp-server
+    bazel-bin/cmd/server/server_/server
 }
 
 cmd_clean() {

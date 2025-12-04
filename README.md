@@ -49,7 +49,7 @@ bazel build //cmd/server:mcp-server
 ./bazel.sh build
 ```
 
-The binary will be at: `bazel-bin/cmd/server/mcp-server_/mcp-server`
+The binary will be at: `bazel-bin/cmd/server/server_/server`
 
 ### Build with Go (Alternative)
 
@@ -86,12 +86,12 @@ To generate a GitHub token:
 #### With Bazel (Recommended)
 
 ```bash
-# Build and run using the convenience script
+# Build and run using the convenience script (automatically loads .env)
 ./bazel.sh run
 
 # Or manually
-source .env
-bazel-bin/cmd/server/mcp-server_/mcp-server
+set -a && source .env && set +a
+bazel-bin/cmd/server/server_/server
 ```
 
 #### With Go Binary
@@ -156,7 +156,7 @@ The project follows a modular architecture with clear separation of concerns:
 
 ```
 mcp-server/
-├── cmd/server/              # Main application entry point
+├── cmd/server/             # Main application entry point
 │   └── main.go             # fx dependency injection setup
 ├── internal/
 │   ├── config/             # Configuration management
@@ -372,7 +372,7 @@ Potential extensions as outlined in CLAUDE.md:
 ### Common Issues
 
 **Error: "GITHUB_TOKEN environment variable is required"**
-- Solution: Make sure to set the `GITHUB_TOKEN` environment variable before running the server.
+- Solution: Ensure `.env` file exists with your `GITHUB_TOKEN` set. If running manually (not via `./bazel.sh run`), export the variable using `set -a && source .env && set +a` before running the binary.
 
 **Error: "failed to fetch starred repos: 401 Unauthorized"**
 - Solution: Verify your GitHub token is valid and has the required scopes.
