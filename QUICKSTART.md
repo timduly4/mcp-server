@@ -64,8 +64,8 @@ GITHUB_TOKEN=your_github_token_here
 bazel build //cmd/server:mcp-server
 
 # Run
-source .env
-bazel-bin/cmd/server/mcp-server_/mcp-server
+set -a && source .env && set +a
+bazel-bin/cmd/server/server_/server
 ```
 
 ### Option C: Using Go Commands Directly
@@ -114,7 +114,7 @@ If you have an MCP client application (like Claude Desktop), configure it to use
 {
   "mcpServers": {
     "github-starred": {
-      "command": "/path/to/mcp-server/bazel-bin/cmd/server/mcp-server_/mcp-server",
+      "command": "/path/to/mcp-server/bazel-bin/cmd/server/server_/server",
       "env": {
         "GITHUB_TOKEN": "your_token_here"
       }
@@ -143,7 +143,7 @@ Send a JSON-RPC request to list resources:
 
 **With Bazel:**
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"resources/list","params":{}}' | bazel-bin/cmd/server/mcp-server_/mcp-server
+echo '{"jsonrpc":"2.0","id":1,"method":"resources/list","params":{}}' | bazel-bin/cmd/server/server_/server
 ```
 
 **With Go:**
@@ -155,7 +155,7 @@ Or test reading the starred repos resource:
 
 **With Bazel:**
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"github://starred"}}' | bazel-bin/cmd/server/mcp-server_/mcp-server
+echo '{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"github://starred"}}' | bazel-bin/cmd/server/server_/server
 ```
 
 **With Go:**
