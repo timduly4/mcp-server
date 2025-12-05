@@ -234,6 +234,40 @@ go test -cover ./...
 go test -v ./internal/github/... ./internal/resource/...
 ```
 
+### Interactive Testing with MCP Inspector
+
+The [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector) provides a web-based UI for testing and debugging your MCP server interactively. This is the recommended way to explore resources and verify functionality during development.
+
+#### With Bazel Build
+
+```bash
+# Option 1: Pass token inline with the command
+GITHUB_TOKEN="your_token_here" npx @modelcontextprotocol/inspector bazel-bin/cmd/server/server_/server
+
+# Option 2: Source .env file first
+source .env
+npx @modelcontextprotocol/inspector bazel-bin/cmd/server/server_/server
+```
+
+#### With Go Build
+
+```bash
+# Option 1: Pass token inline with the command
+GITHUB_TOKEN="your_token_here" npx @modelcontextprotocol/inspector bin/mcp-server
+
+# Option 2: Source .env file first
+source .env
+npx @modelcontextprotocol/inspector bin/mcp-server
+```
+
+The Inspector will:
+- Start your MCP server in the background
+- Launch a web interface (typically at http://localhost:5173)
+- Provide an interactive UI to explore resources and test functionality
+- Show request/response details for debugging
+
+This is much more convenient than manually crafting JSON-RPC requests!
+
 ### Building
 
 #### With Bazel

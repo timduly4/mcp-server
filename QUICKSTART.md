@@ -137,6 +137,37 @@ If you have an MCP client application (like Claude Desktop), configure it to use
 }
 ```
 
+### Using the MCP Inspector (Recommended)
+
+The [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector) is an interactive debugging tool that provides a web UI for testing your MCP server. It's the easiest way to explore resources and test functionality.
+
+**With Bazel build:**
+```bash
+# Option 1: Pass token inline
+GITHUB_TOKEN="your_token_here" npx @modelcontextprotocol/inspector bazel-bin/cmd/server/server_/server
+
+# Option 2: Source .env file first
+source .env
+npx @modelcontextprotocol/inspector bazel-bin/cmd/server/server_/server
+```
+
+**With Go build:**
+```bash
+# Option 1: Pass token inline
+GITHUB_TOKEN="your_token_here" npx @modelcontextprotocol/inspector bin/mcp-server
+
+# Option 2: Source .env file first
+source .env
+npx @modelcontextprotocol/inspector bin/mcp-server
+```
+
+This will:
+1. Start your MCP server
+2. Launch a web interface (typically at http://localhost:5173)
+3. Let you interactively explore resources, test endpoints, and debug
+
+The Inspector provides a much better experience than manual JSON-RPC testing!
+
 ### Manual Testing (JSON-RPC)
 
 Send a JSON-RPC request to list resources:
@@ -226,6 +257,19 @@ go build -o bin/mcp-server ./cmd/server  # Build the binary
 go test ./...                             # Run tests
 go mod download                           # Download dependencies
 go run ./cmd/server                       # Run directly
+```
+
+### MCP Inspector Commands
+
+```bash
+# With Bazel build (pass token inline)
+GITHUB_TOKEN="your_token" npx @modelcontextprotocol/inspector bazel-bin/cmd/server/server_/server
+
+# With Go build (pass token inline)
+GITHUB_TOKEN="your_token" npx @modelcontextprotocol/inspector bin/mcp-server
+
+# Or source .env file first, then run inspector
+source .env && npx @modelcontextprotocol/inspector bazel-bin/cmd/server/server_/server
 ```
 
 ## Why Bazel?
