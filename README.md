@@ -9,6 +9,7 @@ Built with **Bazel** for reproducible, hermetic builds across all platforms.
 - Expose starred GitHub repositories as MCP resources
 - List all starred repositories for authenticated user
 - Query individual starred repository details
+- **Query starred repositories for any GitHub user**
 - Full MCP compliance with JSON-RPC over stdio
 - OAuth-secured GitHub API integration
 - Modular architecture with dependency injection using uber-go/fx
@@ -149,6 +150,41 @@ The server exposes the following resources:
 **Description:** Returns details of a specific starred repository.
 
 **Example:** `github://starred/mark3labs/mcp-go`
+
+#### 3. List Starred Repositories for Any User
+
+**URI Template:** `github://starred/users/{username}`
+
+**Description:** Returns all repositories starred by a specific GitHub user (requires public starred repos or appropriate permissions).
+
+**Example:** `github://starred/users/octocat`
+
+**Response Format:**
+```json
+[
+  {
+    "uri": "github://starred/users/octocat/owner/repo",
+    "name": "owner/repo",
+    "description": "Repository description",
+    "mimeType": "application/json",
+    "contents": {
+      "name": "repo",
+      "full_name": "owner/repo",
+      "owner": "owner",
+      "description": "Repository description",
+      "url": "https://api.github.com/repos/owner/repo",
+      "html_url": "https://github.com/owner/repo",
+      "language": "Go",
+      "stars": 42,
+      "forks": 10,
+      "updated_at": "2024-01-01",
+      "starred_by": "octocat"
+    }
+  }
+]
+```
+
+**Note:** The response includes a `starred_by` field to identify which user starred the repositories.
 
 ## Architecture
 
