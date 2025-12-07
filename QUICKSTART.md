@@ -186,20 +186,36 @@ Or test reading the starred repos resource:
 
 **With Bazel:**
 ```bash
+# List your starred repos
 echo '{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"github://starred"}}' | bazel-bin/cmd/server/server_/server
+
+# List another user's starred repos
+echo '{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"github://starred/users/octocat"}}' | bazel-bin/cmd/server/server_/server
 ```
 
 **With Go:**
 ```bash
+# List your starred repos
 echo '{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"github://starred"}}' | ./bin/mcp-server
+
+# List another user's starred repos
+echo '{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"github://starred/users/octocat"}}' | ./bin/mcp-server
 ```
 
 ## Available Resources
 
 Once running, the server exposes:
 
-1. **List all starred repos**: `github://starred`
+1. **List all starred repos (authenticated user)**: `github://starred`
+   - Returns all repositories starred by the authenticated user
+
 2. **Get specific repo**: `github://starred/{owner}/{repo}`
+   - Returns details of a specific starred repository
+
+3. **List starred repos for any user**: `github://starred/users/{username}`
+   - Returns all repositories starred by a specific GitHub user
+   - Example: `github://starred/users/octocat`
+   - Response includes `starred_by` field
 
 ## Troubleshooting
 
