@@ -99,6 +99,73 @@ func TestToJSON(t *testing.T) {
 	}
 }
 
+func TestRepoToMCPResourceForUser(t *testing.T) {
+	adapter := &Adapter{}
+
+	repo := github.StarredRepo{
+		Name:        "test-repo",
+		FullName:    "owner/test-repo",
+		Description: "A test repository",
+		URL:         "https://api.github.com/repos/owner/test-repo",
+		HTMLURL:     "https://github.com/owner/test-repo",
+		Language:    "Go",
+		Stars:       42,
+		Forks:       10,
+		UpdatedAt:   "2024-01-01",
+		Owner:       "owner",
+	}
+
+	username := "testuser"
+	resource := adapter.repoToMCPResourceForUser(repo, username)
+
+	// Test URI format includes username
+	expectedURI := "github://starred/users/testuser/owner/test-repo"
+	if resource.URI != expectedURI {
+		t.Errorf("URI = %v, want %v", resource.URI, expectedURI)
+	}
+
+	// Test name
+	if resource.Name != repo.FullName {
+		t.Errorf("Name = %v, want %v", resource.Name, repo.FullName)
+	}
+
+	// Test MIME type
+	if resource.MimeType != "application/json" {
+		t.Errorf("MimeType = %v, want application/json", resource.MimeType)
+	}
+
+	// Test contents includes starred_by field
+	if resource.Contents["starred_by"] != username {
+		t.Errorf("Contents[starred_by] = %v, want %v", resource.Contents["starred_by"], username)
+	}
+
+	if resource.Contents["name"] != repo.Name {
+		t.Errorf("Contents[name] = %v, want %v", resource.Contents["name"], repo.Name)
+	}
+
+	if resource.Contents["stars"] != repo.Stars {
+		t.Errorf("Contents[stars] = %v, want %v", resource.Contents["stars"], repo.Stars)
+	}
+}
+
+func TestRepoToMCPResourceForUser_EmptyDescription(t *testing.T) {
+	adapter := &Adapter{}
+
+	repo := github.StarredRepo{
+		Name:     "test-repo",
+		FullName: "owner/test-repo",
+		// Description is empty
+	}
+
+	username := "testuser"
+	resource := adapter.repoToMCPResourceForUser(repo, username)
+
+	expectedDescription := "Repository owner/test-repo starred by testuser"
+	if resource.Description != expectedDescription {
+		t.Errorf("Description = %v, want %v", resource.Description, expectedDescription)
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) && findSubstring(s, substr))
 }

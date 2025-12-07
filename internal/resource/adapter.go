@@ -61,6 +61,22 @@ func (a *Adapter) GetStarredResource(fullName string) (*MCPResource, error) {
 	return nil, fmt.Errorf("repository %s not found in starred repos", fullName)
 }
 
+// ListStarredResourcesForUser returns starred repositories for a specific user as MCP resources
+func (a *Adapter) ListStarredResourcesForUser(username string) ([]MCPResource, error) {
+	repos, err := a.githubClient.GetStarredReposForUser(username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get starred repos for user %s: %w", username, err)
+	}
+
+	resources := make([]MCPResource, 0, len(repos))
+	for _, repo := range repos {
+		resource := a.repoToMCPResourceForUser(repo, username)
+		resources = append(resources, resource)
+	}
+
+	return resources, nil
+}
+
 // repoToMCPResource converts a GitHub starred repo to MCP resource format
 func (a *Adapter) repoToMCPResource(repo github.StarredRepo) MCPResource {
 	uri := fmt.Sprintf("github://starred/%s", repo.FullName)
@@ -81,6 +97,38 @@ func (a *Adapter) repoToMCPResource(repo github.StarredRepo) MCPResource {
 	description := repo.Description
 	if description == "" {
 		description = fmt.Sprintf("Starred repository: %s", repo.FullName)
+	}
+
+	return MCPResource{
+		URI:         uri,
+		Name:        repo.FullName,
+		Description: description,
+		MimeType:    "application/json",
+		Contents:    contents,
+	}
+}
+
+// repoToMCPResourceForUser converts a GitHub starred repo to MCP resource format for a specific user
+func (a *Adapter) repoToMCPResourceForUser(repo github.StarredRepo, username string) MCPResource {
+	uri := fmt.Sprintf("github://starred/users/%s/%s", username, repo.FullName)
+
+	contents := map[string]interface{}{
+		"name":        repo.Name,
+		"full_name":   repo.FullName,
+		"owner":       repo.Owner,
+		"description": repo.Description,
+		"url":         repo.URL,
+		"html_url":    repo.HTMLURL,
+		"language":    repo.Language,
+		"stars":       repo.Stars,
+		"forks":       repo.Forks,
+		"updated_at":  repo.UpdatedAt,
+		"starred_by":  username,
+	}
+
+	description := repo.Description
+	if description == "" {
+		description = fmt.Sprintf("Repository %s starred by %s", repo.FullName, username)
 	}
 
 	return MCPResource{

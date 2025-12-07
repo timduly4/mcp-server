@@ -60,6 +60,16 @@ func (m *MCPServer) registerResources() {
 	)
 
 	m.server.AddResourceTemplate(starredRepoTemplate, m.handleGetStarredRepo)
+
+	// Dynamic resource template: Starred repositories for a specific user
+	userStarredTemplate := mcp.NewResourceTemplate(
+		"github://starred/users/{username}",
+		"User Starred Repositories",
+		mcp.WithTemplateMIMEType("application/json"),
+		mcp.WithTemplateDescription("List of all GitHub repositories starred by a specific user"),
+	)
+
+	m.server.AddResourceTemplate(userStarredTemplate, m.handleListUserStarred)
 }
 
 // handleListStarred handles requests for all starred repositories
@@ -127,6 +137,40 @@ func (m *MCPServer) handleGetStarredRepo(ctx context.Context, request mcp.ReadRe
 	return contents, nil
 }
 
+// handleListUserStarred handles requests for starred repositories of a specific user
+func (m *MCPServer) handleListUserStarred(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	log.Printf("Fetching starred repositories for user: %s", request.Params.URI)
+
+	// Extract username from URI
+	username := extractUsernameFromURI(request.Params.URI)
+	if username == "" {
+		return nil, fmt.Errorf("invalid URI format: %s", request.Params.URI)
+	}
+
+	resources, err := m.adapter.ListStarredResourcesForUser(username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list starred resources for user %s: %w", username, err)
+	}
+
+	// Convert to JSON
+	jsonData, err := m.adapter.ToJSON(resources)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert resources to JSON: %w", err)
+	}
+
+	// Return as MCP resource contents
+	contents := []mcp.ResourceContents{
+		mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}
+
+	log.Printf("Returning %d starred repositories for user %s", len(resources), username)
+	return contents, nil
+}
+
 // extractFullNameFromURI extracts owner/repo from github://starred/{owner}/{repo}
 func extractFullNameFromURI(uri string) string {
 	// Simple URI parsing - in production, use a proper URI parser
@@ -139,6 +183,19 @@ func extractFullNameFromURI(uri string) string {
 	// Extract the part after the prefix
 	fullName := uri[len(prefix):]
 	return fullName
+}
+
+// extractUsernameFromURI extracts username from github://starred/users/{username}
+func extractUsernameFromURI(uri string) string {
+	// Expected format: github://starred/users/{username}
+	const prefix = "github://starred/users/"
+	if len(uri) <= len(prefix) {
+		return ""
+	}
+
+	// Extract the username after the prefix
+	username := uri[len(prefix):]
+	return username
 }
 
 // Start starts the MCP server using stdio transport
