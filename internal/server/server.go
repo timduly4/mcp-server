@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -51,6 +52,17 @@ func (m *MCPServer) registerResources() {
 
 	m.server.AddResource(starredListResource, m.handleListStarred)
 
+	// Dynamic resource template: Starred repositories for a specific user
+	// NOTE: Register this BEFORE the more general {owner}/{repo} pattern to avoid routing conflicts
+	userStarredTemplate := mcp.NewResourceTemplate(
+		"github://starred/users/{username}",
+		"User Starred Repositories",
+		mcp.WithTemplateMIMEType("application/json"),
+		mcp.WithTemplateDescription("List of all GitHub repositories starred by a specific user"),
+	)
+
+	m.server.AddResourceTemplate(userStarredTemplate, m.handleListUserStarred)
+
 	// Dynamic resource template: Individual starred repository
 	starredRepoTemplate := mcp.NewResourceTemplate(
 		"github://starred/{owner}/{repo}",
@@ -60,16 +72,6 @@ func (m *MCPServer) registerResources() {
 	)
 
 	m.server.AddResourceTemplate(starredRepoTemplate, m.handleGetStarredRepo)
-
-	// Dynamic resource template: Starred repositories for a specific user
-	userStarredTemplate := mcp.NewResourceTemplate(
-		"github://starred/users/{username}",
-		"User Starred Repositories",
-		mcp.WithTemplateMIMEType("application/json"),
-		mcp.WithTemplateDescription("List of all GitHub repositories starred by a specific user"),
-	)
-
-	m.server.AddResourceTemplate(userStarredTemplate, m.handleListUserStarred)
 }
 
 // handleListStarred handles requests for all starred repositories
@@ -176,7 +178,7 @@ func extractFullNameFromURI(uri string) string {
 	// Simple URI parsing - in production, use a proper URI parser
 	// Expected format: github://starred/{owner}/{repo}
 	const prefix = "github://starred/"
-	if len(uri) <= len(prefix) {
+	if !strings.HasPrefix(uri, prefix) || len(uri) <= len(prefix) {
 		return ""
 	}
 
@@ -189,7 +191,7 @@ func extractFullNameFromURI(uri string) string {
 func extractUsernameFromURI(uri string) string {
 	// Expected format: github://starred/users/{username}
 	const prefix = "github://starred/users/"
-	if len(uri) <= len(prefix) {
+	if !strings.HasPrefix(uri, prefix) || len(uri) <= len(prefix) {
 		return ""
 	}
 
