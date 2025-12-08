@@ -1,4 +1,4 @@
-load("@rules_go//go:def.bzl", "go_library")
+load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "server",
@@ -10,4 +10,10 @@ go_library(
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_github_mark3labs_mcp_go//server",
     ],
+)
+
+go_test(
+    name = "server_test",
+    srcs = ["server_test.go"],
+    embed = [":server"],
 )
