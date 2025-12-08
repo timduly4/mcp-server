@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Mount bazel cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+        key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'WORKSPACE') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-
+    
+    - name: Setup Bazel
+      uses: bazel-contrib/setup-bazel@0.9.0
+      with:
+        bazelisk-cache: true
+        disk-cache: ${{ github.workflow }}
+        repository-cache: true
+    
+    - name: Build all targets
+      run: bazel build //...
+    
+    - name: Run tests
+      run: bazel test //... --test_output=errors
+    
+    - name: Generate test coverage
+      run: |
+        bazel coverage //... --combined_report=lcov --instrumentation_filter="//(internal|cmd)/..."
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./bazel-out/_coverage/_coverage_report.dat
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    
+    - name: Generate coverage summary
+      run: |
+        if [ -f "bazel-out/_coverage/_coverage_report.dat" ]; then
+          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          lcov --summary bazel-out/_coverage/_coverage_report.dat 2>&1 | grep -A 3 "Summary:" >> $GITHUB_STEP_SUMMARY || echo "Coverage data processed" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Build server binary
+      run: bazel build //cmd/server:mcp-server
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mcp-server-${{ github.sha }}
+        path: bazel-bin/cmd/server/server_/server
+        retention-days: 7
+    
+    - name: Upload coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report-${{ github.sha }}
+        path: bazel-out/_coverage/_coverage_report.dat
+        retention-days: 7
